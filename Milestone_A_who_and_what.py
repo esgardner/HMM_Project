@@ -87,19 +87,17 @@ the Forward Algorithm and Viterbi. Finally, we will provide a way for the user
 to specify a custom input sequence to our HMM algorithms, and add a 
 GUI component that displays the HMM trellis.'''
 
-workload_distribution = '''Maggie will have primary responsibility for the 
-static evaluation function, John will have primary responsibility for
-the optimizations of alpha-beta pruning and Zobrist hashing, and both
-partners expect to be closely involved in writing the move-generation
-code and defining the personality of the agent.'''
+workload_distribution = '''Both of us will be involved in determining the format for the HMM files and models. 
+Each of us will be responsible for one domain model. Erica will handle the forward algorithm and Einar 
+will do Viterbi algorithm as well as the visual component for the trellis diagram.'''
 
-reference1 = '''Wikipedia article on Baroque Chess;
-    URL: https://en.wikipedia.org/wiki/Baroque_chess (accessed Feb. 22, 2018)'''
+reference1 = '''Medium article on hidden markov Models by Sanjay Dorairaj;
+    URL: https://medium.com/@postsanjay/hidden-markov-models-simplified-c3f58728caab'''
 
-reference2 = '''"What\'s Wrong with Ultima," by Robert Abbott,
-    available online at: http://www.logicmazes.com/games/wgr.html'''
+reference2 = '''Freecodecamp article on POS tagging and HMMs by Sachin Malhotra and Divya Godayal,
+    URL: https://medium.freecodecamp.org/an-introduction-to-part-of-speech-tagging-and-the-hidden-markov-model-953d45338f24'''
 
-our_submission = Who_and_what([maggie, john], OPTION, title, approach, workload_distribution, [reference1, reference2])
+our_submission = Who_and_what([erica, einar], OPTION, title, approach, workload_distribution, [reference1, reference2])
 
 # You can run this file from the command line by typing:
 # python3 who_and_what.py
