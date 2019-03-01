@@ -77,13 +77,14 @@ team = [erica, einar]
 OPTION = '3'
 # Legal options are 1, 2, and 3.
 
-title = "A Blustering Baroque Chess Player"
+title = "HMMs for two different domains"
 
-approach = '''Our approach will be to first understand the rules,
-then code our move generator, develop a static evaluation function,
-a personality for the agent, and then optimize using alpha-beta
-pruning, Zobrist hashing, and comparison of alternative static
-evaluation functions.'''
+approach = '''We will first decide on a fixed format for HMM files. Then, we will create HMM model 
+files for two domains: POS (Part-of-speech) tagging and a second 
+domain yet to be decided. Next, we will begin our implementation process 
+by first building a library to interact with the HMM files, and then implement 
+the Forward Algorithm and Viterbi. Finally, we will a user to specify a custom input sequence 
+to our HMM algorithms, and add a GUI component that displays the HMM trellis.'''
 
 workload_distribution = '''Maggie will have primary responsibility for the 
 static evaluation function, John will have primary responsibility for
