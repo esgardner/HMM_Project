@@ -15,7 +15,7 @@ class HMM_Parser():
         parsed_emiss_num = 0
 
         # Initial state probabilities: Dictionary of state -> probability
-        init_state_probs = collections.defaultdict(float)
+        initial_state_probs = collections.defaultdict(float)
 
         # Transition probabilities: Dictionary of start state -> end state -> probability
         transition_probs = collections.defaultdict(lambda: collections.defaultdict(float))
@@ -63,7 +63,7 @@ class HMM_Parser():
                     (state, probability) = self.parse_init_line(line)
 
                     # Update dict of state->prob
-                    init_state_probs[state] = probability
+                    initial_state_probs[state] = probability
 
                     # Update set of encountered states
                     states.add(state)
@@ -125,12 +125,13 @@ class HMM_Parser():
             "parsed_init_num": parsed_init_num,
             "parsed_trans_num": parsed_trans_num,
             "parsed_emiss_num": parsed_emiss_num,
-            "init_state_probs": collections.defaultdict(float),
-            "transition_probs": collections.defaultdict(float),
-            "states": set(),
-            "emission_probs": collections.defaultdict(lambda: collections.defaultdict(float)),
-            "emissions": set(),
-            "emission_to_states": collections.defaultdict(set),
+            "initial_state_probs": initial_state_probs,
+            "initial_states": initial_state_probs.keys(),
+            "transition_probs": transition_probs,
+            "states": states,
+            "emission_probs": emission_probs,
+            "emissions": emissions,
+            "emission_to_states": emission_to_states,
         }
         
 
@@ -193,13 +194,30 @@ class HMM_Parser():
 # HMM Class
 class HMM():
     def __init__(self, hmm_filename):
-        self.__load_hmm(filename)
+        hmm_data = self.__load_hmm(filename)
+        self.emissions = hmm_data['emissions']
+        self.states = hmm_data['states']
+        self.initial_state_probabilities = hmm_data['initial_state_probs']
+        self.initial_states = hmm_data['initial_states']
+        self.state_to_idx = self._create_state_to_idx_mapping(self.states)
     
     # Load a hmm model file
     def __load_hmm(self, hmm_filename):
-        hmm_data = HMM_Parser().parse(hmm_filename)
-        
+        return HMM_Parser().parse(hmm_filename)
+    
+    # Map each state to an index (Used by Viterbi)
+    # i.e. first state = 0, second state = 1, etc...
+    def _create_state_to_idx_mapping(self, states):
+        state_to_idx = collections.defaultdict(int)
+        for state in states:
+            idx = len(state_to_idx)
+            state_to_idx[state] = idx
+        return state_to_idx
+
+    
     
 if __name__ == "__main__":
     filename = "hmm_ex1"
     hmm = HMM(filename)
+    # viterbi_res = hmm.viterbi("The book")
+    # print(viterbi_res)
