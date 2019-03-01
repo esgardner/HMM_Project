@@ -5,8 +5,9 @@ import sys, math, numpy, collections
 class HMM_Parser():
     def parse(self, hmm_filename):
         # Variables for parsing results
-        state_num, sym_num, init_line_num, parsed_init_num = None, None, None, 0
-        trans_line_num, parsed_trans_num, emiss_line_num, parsed_emiss_num = None, 0, None, 0
+        parsed_init_num = 0
+        parsed_trans_num = 0
+        parsed_emiss_num = 0
         init_state_probs = collections.defaultdict(float)
         transition_probs = collections.defaultdict(lambda: collections.defaultdict(float))
         states = set()
@@ -25,28 +26,8 @@ class HMM_Parser():
                 if line == "":
                     continue
                 
-                # If we encounter line starting with "state_num", extract num that follows
-                elif "state_num" in line:
-                    state_num = self._get_last_int_in_line(line)
-                
-                # If we encounter line starting with "sym_num", extract num that follows
-                elif "sym_num" in line:
-                    sym_num = self._get_last_int_in_line(line)
-                
-                # If we encounter line starting with "init_line_num", extract num that follows
-                elif "init_line_num" in line:
-                    init_line_num = self._get_last_int_in_line(line)
-                
-                # If we encounter line starting with "trans_line_num", extract num that follows
-                elif "trans_line_num" in line:
-                    trans_line_num = self._get_last_int_in_line(line)
-                
-                # If we encounter line starting with "emiss_line_num", extract num that follows
-                elif "emiss_line_num" in line:
-                    emiss_line_num = self._get_last_int_in_line(line)
-                
                 # If we encounter line starting with "%init_states", the following lines will be about initial states
-                elif "%init_states" == line:
+                elif "%initial_states" == line:
                     parse_state = "init"
                 
                 # If we encounter line starting with "%transitions", the following lines will be about transitions
@@ -121,35 +102,9 @@ class HMM_Parser():
                     sys.exit()
 
 
-        ## Verify that the HMM is valid
-        if state_num != len(states):
-            print("warning: different numbers of state_num: claimed={}, real={}".format(state_num, len(states)), file=sys.stderr)
-            sys.exit()
-        
-        elif sym_num != len(emissions):
-            print("warning: different numbers of sym_num: claimed={}, real={}".format(sym_num, len(emissions)), file=sys.stderr)
-            sys.exit()
-        
-        elif parsed_init_num != init_line_num:
-            print("warning: different numbers of init_line_num: claimed={}, real={}".format(init_line_num, parsed_init_num), file=sys.stderr)
-            sys.exit()
-        
-        elif parsed_emiss_num != emiss_line_num:
-            print("warning: different numbers of emiss_line_num: claimed={}, real={}".format(emiss_line_num, parsed_emiss_num), file=sys.stderr)
-            sys.exit()
-        
-        elif parsed_trans_num != trans_line_num:
-            print("warning: different numbers of trans_line_num: claimed={}, real={}".format(trans_line_num, parsed_trans_num), file=sys.stderr)
-            sys.exit()
-        
-        return = {
-            "state_num": state_num,
-            "sym_num": sym_num,
-            "init_line_num": init_line_num,
+        return {
             "parsed_init_num": parsed_init_num,
-            "trans_line_num": trans_line_num,
             "parsed_trans_num": parsed_trans_num,
-            "emiss_line_num": emiss_line_num,
             "parsed_emiss_num": parsed_emiss_num,
             "init_state_probs": collections.defaultdict(float),
             "transition_probs": collections.defaultdict(float),

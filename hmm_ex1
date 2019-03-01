@@ -1,10 +1,4 @@
-state_num 6
-sym_num 11
-init_line_num 1
-trans_line_num 15
-emiss_line_num 12
-
-%init_states
+%initial_states
 BOS     1.0 
 	
 	
