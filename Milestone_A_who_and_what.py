@@ -71,7 +71,7 @@ Team:
 # Change the following to represent your own information:
 
 erica = Partner("Gardner", "Erica", "erstgard")
-einar = Partner("Horn", "Einar", "jd007")
+einar = Partner("Horn", "Einar", "einarh")
 team = [erica, einar]
 
 OPTION = '3'
