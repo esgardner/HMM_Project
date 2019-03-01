@@ -83,8 +83,9 @@ approach = '''We will first decide on a fixed format for HMM files. Then, we wil
 files for two domains: POS (Part-of-speech) tagging and a second 
 domain yet to be decided. Next, we will begin our implementation process 
 by first building a library to interact with the HMM files, and then implement 
-the Forward Algorithm and Viterbi. Finally, we will a user to specify a custom input sequence 
-to our HMM algorithms, and add a GUI component that displays the HMM trellis.'''
+the Forward Algorithm and Viterbi. Finally, we will provide a way for the user 
+to specify a custom input sequence to our HMM algorithms, and add a 
+GUI component that displays the HMM trellis.'''
 
 workload_distribution = '''Maggie will have primary responsibility for the 
 static evaluation function, John will have primary responsibility for
