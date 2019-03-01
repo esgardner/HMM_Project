@@ -1,5 +1,9 @@
 #!/usr/bin/python3
 '''Milestone_A_who_and_what.py
+CSE 415 University of Washington Winter 2019
+
+created by Einar Horn (netid: einarh) and Erica Gardner (netid: erstgard)
+
 This runnable file will provide a representation of
 answers to key questions about your project in CSE 415.
 
@@ -89,7 +93,7 @@ GUI component that displays the HMM trellis.'''
 
 workload_distribution = '''Both of us will be involved in determining the format for the HMM files and models. 
 Each of us will be responsible for one domain model. Erica will handle the forward algorithm and Einar 
-will do Viterbi algorithm as well as the visual component for the trellis diagram.'''
+will do the Viterbi algorithm as well as the visual component for the trellis diagram.'''
 
 reference1 = '''Medium article on hidden markov Models by Sanjay Dorairaj;
     URL: https://medium.com/@postsanjay/hidden-markov-models-simplified-c3f58728caab'''
