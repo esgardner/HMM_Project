@@ -199,25 +199,203 @@ class HMM():
         self.states = hmm_data['states']
         self.initial_state_probabilities = hmm_data['initial_state_probs']
         self.initial_states = hmm_data['initial_states']
-        self.state_to_idx = self._create_state_to_idx_mapping(self.states)
+        self.state_to_idx, self.idx_to_state = self._create_state_to_idx_mapping(self.states)
+        self.emission_to_states = hmm_data['emission_to_states']
+        self.emission_probabilities = hmm_data['emission_probs']
+        self.transition_probabilities = hmm_data['transition_probs']
     
     # Load a hmm model file
     def __load_hmm(self, hmm_filename):
         return HMM_Parser().parse(hmm_filename)
     
     # Map each state to an index (Used by Viterbi)
-    # i.e. first state = 0, second state = 1, etc...
+    # i.e. first state -> 0, second state -> 1, etc...
+    # We also map index to state:
+    # i.e. 0 -> first state, 1 -> second state, etc...
     def _create_state_to_idx_mapping(self, states):
         state_to_idx = collections.defaultdict(int)
+        idx_to_state = collections.defaultdict(str)
         for state in states:
             idx = len(state_to_idx)
             state_to_idx[state] = idx
-        return state_to_idx
+            idx_to_state[idx] = state
+        return state_to_idx, idx_to_state
 
-    
+    # Run viterbi on a given input string
+    def viterbi(self, input_str):
+        def get_init_states_with_transition(curr_state):
+            # States to return
+            return_states = set()
+
+            init_states = self.initial_states
+
+            # Only return init states which have a transition to the current state
+            for init_state in init_states:
+                if init_state in self.transition_probabilities and curr_state in self.transition_probabilities[init_state]:
+                    return_states |= {init_state}
+
+            return return_states
+        
+        def get_possible_states_with_transition(prev_observation, curr_state):
+            # States to return
+            return_states = set()
+
+            possible_states = self.emission_to_states[prev_observation]
+
+            # Only return states which have a transition to the current state
+            for state in possible_states:
+                if state in self.transition_probabilities and curr_state in self.transition_probabilities[state]:
+                    return_states |= {state}
+
+            return return_states
+        
+        # Remove any blank characters at the end of the string
+        input_str = input_str.rstrip()
+
+        # Split the input on spaces
+        input_seq = input_str.split()
+
+        # Check that every item in input_seq is a valid emission in HMM
+        for observation in input_seq:
+            # If we encounter item not in HMM, we quit
+            if observation not in self.emissions:
+                print("Error: Encountered observation in input that is not in HMM")
+                sys.exit()
+        
+        ## Set up our trellis and backpointers
+        # Our trellis is a (len(input_seq)+1) row, len(self.states) col
+        delta = numpy.full(shape=(len(input_seq)+1,len(self.states)), fill_value=float("-inf"))
+        back_p = numpy.zeros(shape=(len(input_seq)+1,len(self.states)))
+
+        # Initialize our trellis with values for first column
+        for state in self.states:
+            # Get the table index corresponding to this state
+            state_idx = self.state_to_idx[state]
+
+            # Update the first column with probability for starting at that state
+            if state in self.initial_states:
+                delta[0][state_idx] = self.initial_state_probabilities[state]
+            else:
+                delta[0][state_idx] = 0
+            
+            # The backpointer of the first column should point to nothing
+            back_p[0][state_idx] = -1
+        
+        # Iterate through our sequence for every obvservation in our input sequence
+        for observation_idx, observation in enumerate(input_seq):
+            print("Processing observation: {}".format(observation))
+
+            # This is the trellis column index of the obvservation we are looking at
+            observation_table_idx = observation_idx+1
+
+            # Get a set of states that can emit for this observation
+            valid_states = self.emission_to_states[observation]
+
+            # Check each one to calculate probabilities of that state
+            for valid_state in valid_states:
+                # Get the trellis row index of this state
+                curr_state_idx = self.state_to_idx[valid_state]
+
+                # Get emission probability for this state
+                emission_prob = self.emission_probabilities[valid_state][observation]
+
+                # We will get set of valid states for previous observation
+                valid_prev_observation_states = set()
+
+                # Get the trellis column index of the previous observation
+                prev_observation_idx = observation_idx - 1
+
+                # If our current observation is the first of the sequence...
+                if prev_observation_idx < 0:
+                    # ...then our previous states are those that are in the initial state set, AND
+                    # which have a transition to the current state
+                    valid_prev_observation_states = get_init_states_with_transition(valid_state)
+                
+                # If there has been a previous observation in the sequence...
+                else:
+                    # ...then our previous states are those emit the previous observation, AND
+                    # which have a transition to the current state
+                    prev_observation = input_seq[prev_observation_idx]
+                    valid_prev_observation_states = get_possible_states_with_transition(prev_observation, valid_state)
+                
+                # Now we find the most optimal transition from a previous state to the current state
+                max_prob = 0.0
+                max_state_idx = -1
+                # Calculate the total probability from a previous state to the current state
+                for valid_prev_observation_state in valid_prev_observation_states:
+                    # Get the trellis row index of the previous state we are looking at
+                    prev_state_idx = self.state_to_idx[valid_prev_observation_state]
+                    
+                    # Get the probability of that previous state from the trellis
+                    state_prob = delta[observation_table_idx-1][prev_state_idx]
+
+                    # Get the transition proability from that previous state to the current state
+                    transition_prob = self.transition_probabilities[valid_prev_observation_state][valid_state]
+                    
+                    # The total probability is the product of those two probabilities
+                    total_prob = state_prob * transition_prob
+                    
+                    # Update best probability
+                    if max_prob < total_prob:
+                        max_prob = total_prob
+                        max_state_idx = prev_state_idx
+
+                # If we found a valid transition to the current state, calculate the overall probability for that
+                if max_prob > 0:
+                    current_prob = max_prob * emission_prob
+                    best_prev_state = max_state_idx
+                
+                # If we did not find a valid transition to current state, probability of state is 0
+                else:
+                    current_prob = 0
+                    best_prev_state = -1
+
+                # Update current cell
+                delta[observation_table_idx][curr_state_idx] = current_prob
+
+                # Update backpointer to best previous state
+                back_p[observation_table_idx][curr_state_idx] = best_prev_state
+                
+       
+
+        # Find the row that has the highest value in the final column of trellis
+        # This is our best state sequence
+        highest_prob = 0
+        highest_prob_idx = -1
+        for state in self.states:
+            state_idx = self.state_to_idx[state]
+            delta_val = delta[len(input_seq)][state_idx]
+            if delta_val > highest_prob:
+                highest_prob = delta_val
+                highest_prob_idx = state_idx
+        
+        # If we couldn't find a valid state sequence
+        if highest_prob_idx == -1:
+            # We output that no sequence was found
+            output = input_str + " => " + " *none*" + " " '-inf' + '\n'
+            print(output)
+        
+        # If we did find a valid state sequence
+        else:
+            # We will iterate backwards through the trellis to find the best state idx sequence
+            state_seq = [highest_prob_idx]
+            for state_idx in range(len(input_seq), 0, -1):
+                bp = int(back_p[state_idx][highest_prob_idx])
+                state_seq.append(bp)
+                highest_prob_idx = bp
+            
+            # Since our state sequence is backwards, we reverse it
+            state_seq = list(reversed(state_seq))
+
+            # We convert our state (index) sequence to a sequence of states
+            state_seq_outputs = [self.idx_to_state[state_idx] for state_idx in state_seq]
+
+            # Output the results
+            output = input_str + " => " + " ".join(state_seq_outputs) + " " + str(highest_prob) + '\n'
+            print(output)
+        
     
 if __name__ == "__main__":
     filename = "hmm_ex1"
     hmm = HMM(filename)
-    # viterbi_res = hmm.viterbi("The book")
-    # print(viterbi_res)
+    viterbi_res = hmm.viterbi("the store sold the book")
