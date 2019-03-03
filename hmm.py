@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import sys, math, numpy, collections
+import sys, collections
+from prettytable import PrettyTable
 
 
 class HMM_Parser():
@@ -264,8 +265,8 @@ class HMM():
         
         ## Set up our trellis and backpointers
         # Our trellis is a (len(input_seq)+1) row, len(self.states) col
-        delta = numpy.full(shape=(len(input_seq)+1,len(self.states)), fill_value=float("-inf"))
-        back_p = numpy.zeros(shape=(len(input_seq)+1,len(self.states)))
+        delta = [[0.0 for _ in range(len(input_seq)+1)] for _ in range(len(self.states))]
+        back_p = [[0 for _ in range(len(input_seq)+1)] for _ in range(len(self.states))]
 
         # Initialize our trellis with values for first column
         for state in self.states:
@@ -274,17 +275,15 @@ class HMM():
 
             # Update the first column with probability for starting at that state
             if state in self.initial_states:
-                delta[0][state_idx] = self.initial_state_probabilities[state]
+                delta[state_idx][0] = self.initial_state_probabilities[state]
             else:
-                delta[0][state_idx] = 0
+                delta[state_idx][0] = 0
             
             # The backpointer of the first column should point to nothing
-            back_p[0][state_idx] = -1
+            back_p[state_idx][0] = -1
         
         # Iterate through our sequence for every obvservation in our input sequence
         for observation_idx, observation in enumerate(input_seq):
-            print("Processing observation: {}".format(observation))
-
             # This is the trellis column index of the obvservation we are looking at
             observation_table_idx = observation_idx+1
 
@@ -327,7 +326,7 @@ class HMM():
                     prev_state_idx = self.state_to_idx[valid_prev_observation_state]
                     
                     # Get the probability of that previous state from the trellis
-                    state_prob = delta[observation_table_idx-1][prev_state_idx]
+                    state_prob = delta[prev_state_idx][observation_table_idx-1]
 
                     # Get the transition proability from that previous state to the current state
                     transition_prob = self.transition_probabilities[valid_prev_observation_state][valid_state]
@@ -351,10 +350,10 @@ class HMM():
                     best_prev_state = -1
 
                 # Update current cell
-                delta[observation_table_idx][curr_state_idx] = current_prob
+                delta[curr_state_idx][observation_table_idx] = current_prob
 
                 # Update backpointer to best previous state
-                back_p[observation_table_idx][curr_state_idx] = best_prev_state
+                back_p[curr_state_idx][observation_table_idx] = best_prev_state
                 
        
 
@@ -364,15 +363,44 @@ class HMM():
         highest_prob_idx = -1
         for state in self.states:
             state_idx = self.state_to_idx[state]
-            delta_val = delta[len(input_seq)][state_idx]
+            delta_val = delta[state_idx][len(input_seq)]
             if delta_val > highest_prob:
                 highest_prob = delta_val
                 highest_prob_idx = state_idx
         
+        # Create a trellis visualization
+        # new_delta = delta.T
+
+        # This will be the headers of our table
+        table_headers = [str(idx+1) + ") " + item for idx, item in enumerate(input_seq)]
+        table_headers.insert(0, "[States]")
+        table_headers.insert(1, "[Initial probabilities]")
+
+        # Create a PrettyTable to display trellis
+        trellis = PrettyTable()
+        for idx, row in enumerate(delta):
+            row = ["%.8f" % number for number in row]
+            state_name = self.idx_to_state[idx]
+            new_row = []
+            for item in row:
+                try:
+                    item = float(item)
+                    if item > 0:
+                        item = '\033[92m' + str(item) + '\033[0m'
+                    new_row.append(str(item))
+                except ValueError:
+                    new_row.append(item)
+            new_row.insert(0, state_name)
+            trellis.add_row(new_row)
+        trellis.field_names = table_headers
+
+        # Print trellis
+        print(trellis)
+
         # If we couldn't find a valid state sequence
         if highest_prob_idx == -1:
             # We output that no sequence was found
-            output = input_str + " => " + " *none*" + " " '-inf' + '\n'
+            output = input_str + " => " + " *none*" + "\nProbability of sequence: " '0' + '\n'
             print(output)
         
         # If we did find a valid state sequence
@@ -380,7 +408,7 @@ class HMM():
             # We will iterate backwards through the trellis to find the best state idx sequence
             state_seq = [highest_prob_idx]
             for state_idx in range(len(input_seq), 0, -1):
-                bp = int(back_p[state_idx][highest_prob_idx])
+                bp = int(back_p[highest_prob_idx][state_idx])
                 state_seq.append(bp)
                 highest_prob_idx = bp
             
@@ -390,9 +418,13 @@ class HMM():
             # We convert our state (index) sequence to a sequence of states
             state_seq_outputs = [self.idx_to_state[state_idx] for state_idx in state_seq]
 
-            # Output the results
-            output = input_str + " => " + " ".join(state_seq_outputs) + " " + str(highest_prob) + '\n'
+            # Pretty print the results
+            # Get the direct string representation of results
+            output = input_str + " => " + " ".join(state_seq_outputs) + "\nProbability of sequence:" + str(highest_prob) + '\n'
+
+            # Print all results
             print(output)
+
         
     
 if __name__ == "__main__":
