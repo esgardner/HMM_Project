@@ -497,6 +497,7 @@ class HMM():
             if delta_val > highest_prob:
                 highest_prob = delta_val
                 highest_prob_idx = state_idx
+
         # If we couldn't find a valid state sequence
         if highest_prob_idx == -1:
             # We output that no sequence was found
