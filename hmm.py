@@ -498,6 +498,36 @@ class HMM():
                 highest_prob = delta_val
                 highest_prob_idx = state_idx
 
+        # Create a trellis visualization
+        # new_delta = delta.T
+
+        # This will be the headers of our table
+        table_headers = [str(idx+1) + ") " + item for idx, item in enumerate(input_seq)]
+        table_headers.insert(0, "[States]")
+        table_headers.insert(1, "[Initial probabilities]")
+
+        # Create a PrettyTable to display trellis
+        trellis = PrettyTable()
+        for idx, row in enumerate(delta):
+            row = ["%.8f" % number for number in row]
+            state_name = self.idx_to_state[idx]
+            new_row = []
+            for item in row:
+                try:
+                    item = float(item)
+                    if item > 0:
+                        item = '\033[92m' + str(item) + '\033[0m'
+                    new_row.append(str(item))
+                except ValueError:
+                    new_row.append(item)
+            new_row.insert(0, state_name)
+            trellis.add_row(new_row)
+        trellis.field_names = table_headers
+
+        # Print trellis
+        print(trellis)
+
+
         # If we couldn't find a valid state sequence
         if highest_prob_idx == -1:
             # We output that no sequence was found
