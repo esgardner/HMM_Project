@@ -41,23 +41,23 @@ class HMM_Parser():
             for line in infile:
                 # Strip any trailing whitespace from line (including newlines)
                 line = line.rstrip()
-                
+
                 # If we encounter an empty line, skip it
                 if line == "":
                     continue
-                
+
                 # If we encounter line starting with "%init_states", the following lines will be about initial states
                 elif "%initial_states" == line:
                     parse_state = "init"
-                
+
                 # If we encounter line starting with "%transitions", the following lines will be about transitions
                 elif "%transitions" == line:
                     parse_state = "transition"
-                
+
                 # If we encounter line starting with "%emissions", the following lines will be about emissions
                 elif "%emissions" == line:
                     parse_state = "emission"
-                
+
                 # If we are parsing initial states, extract state and probability of being in state
                 elif parse_state == "init":
                     # Extract state and probability
@@ -72,7 +72,7 @@ class HMM_Parser():
                     # Update count of parsed init lines
                     parsed_init_num += 1
 
-                
+
                 # If we are parsing transitions, extract transition probability
                 elif parse_state == "transition":
                     # Extract transition info
@@ -90,8 +90,8 @@ class HMM_Parser():
 
                     # Update count of parsed transition lines
                     parsed_trans_num += 1
-                    
-                
+
+
                 # If we are parsing emissions, extract emission probability
                 elif parse_state == "emission":
                     # Extract emission info
@@ -103,7 +103,7 @@ class HMM_Parser():
                         sys.exit()
                     else:
                         emission_probs[state][emission] = probability
-                    
+
                     # Update set of encountered states
                     states |= {state}
 
@@ -115,7 +115,7 @@ class HMM_Parser():
 
                     # Update count of parsed emission lines
                     parsed_emiss_num += 1
-                
+
                 # We should never hit this condition if our HMM is valid
                 else:
                     print("Unexpected item encountered in parsing:{}".format(line))
@@ -134,7 +134,7 @@ class HMM_Parser():
             "emissions": emissions,
             "emission_to_states": emission_to_states,
         }
-        
+
 
     ## Extract the last integer in a space separated string
     # e.g. "State 2" -> 2
@@ -156,7 +156,7 @@ class HMM_Parser():
         state = split_line[0]
         prob = float(split_line[1])
         return (state, prob)
-    
+
     # Extract information about transitions from a line
     # "BOS DT 0.5" -> ("BOS", "DT", 0.5)
     def parse_transition_line(self,line):
@@ -173,7 +173,7 @@ class HMM_Parser():
             print("Error: a prob is not in [0,1] range:{}".format(prob))
             sys.exit()
         return (start_state, end_state, prob)
-    
+
     # Extract information about emissions from a line
     # "DT the 0.5" -> ("DT", "the", 0.5)
     def parse_emission_line(self,line):
@@ -204,11 +204,11 @@ class HMM():
         self.emission_to_states = hmm_data['emission_to_states']
         self.emission_probabilities = hmm_data['emission_probs']
         self.transition_probabilities = hmm_data['transition_probs']
-    
+
     # Load a hmm model file
     def __load_hmm(self, hmm_filename):
         return HMM_Parser().parse(hmm_filename)
-    
+
     # Map each state to an index (Used by Viterbi)
     # i.e. first state -> 0, second state -> 1, etc...
     # We also map index to state:
@@ -221,6 +221,30 @@ class HMM():
             state_to_idx[state] = idx
             idx_to_state[idx] = state
         return state_to_idx, idx_to_state
+
+    # run the forward algorithm
+    def forward(self, input_str):
+        # Remove any blank characters at the end of the string
+        input_str = input_str.rstrip()
+
+        # Split the input on spaces
+        input_seq = input_str.split()
+
+
+        result = [{}]
+        # initialize base case for time step 0
+        for y in self.states:
+            result[0][y] = self.initial_state_probabilities[y]* self.emission_probabilities[y][input_seq[0]]
+
+        # forward algorithm calculations
+        for t in range(1, len(input_seq)):
+            result.append({})
+            for y in self.states:
+                result[t][y] = sum((result[t-1][y0] * self.transition_probabilities[y0][y] * self.emission_probabilities[y][input_seq[t]]) for y0 in self.states)
+        prob = sum((result[len(input_seq) - 1][s]) for s in self.states)
+        for idx, x in enumerate(result):
+            print("input: {}, forward:{}".format(input_seq[idx],x))
+        print("probability:{}".format(prob))
 
     # Run viterbi on a given input string
     def viterbi(self, input_str):
@@ -236,7 +260,7 @@ class HMM():
                     return_states |= {init_state}
 
             return return_states
-        
+
         def get_possible_states_with_transition(prev_observation, curr_state):
             # States to return
             return_states = set()
@@ -249,7 +273,7 @@ class HMM():
                     return_states |= {state}
 
             return return_states
-        
+
         # Remove any blank characters at the end of the string
         input_str = input_str.rstrip()
 
@@ -262,7 +286,7 @@ class HMM():
             if observation not in self.emissions:
                 print("Error: Encountered observation in input that is not in HMM")
                 sys.exit()
-        
+
         ## Set up our trellis and backpointers
         # Our trellis is a (len(input_seq)+1) row, len(self.states) col
         delta = [[0.0 for _ in range(len(input_seq)+1)] for _ in range(len(self.states))]
@@ -278,10 +302,10 @@ class HMM():
                 delta[state_idx][0] = self.initial_state_probabilities[state]
             else:
                 delta[state_idx][0] = 0
-            
+
             # The backpointer of the first column should point to nothing
             back_p[state_idx][0] = -1
-        
+
         # Iterate through our sequence for every obvservation in our input sequence
         for observation_idx, observation in enumerate(input_seq):
             # This is the trellis column index of the obvservation we are looking at
@@ -309,14 +333,14 @@ class HMM():
                     # ...then our previous states are those that are in the initial state set, AND
                     # which have a transition to the current state
                     valid_prev_observation_states = get_init_states_with_transition(valid_state)
-                
+
                 # If there has been a previous observation in the sequence...
                 else:
                     # ...then our previous states are those emit the previous observation, AND
                     # which have a transition to the current state
                     prev_observation = input_seq[prev_observation_idx]
                     valid_prev_observation_states = get_possible_states_with_transition(prev_observation, valid_state)
-                
+
                 # Now we find the most optimal transition from a previous state to the current state
                 max_prob = 0.0
                 max_state_idx = -1
@@ -324,16 +348,16 @@ class HMM():
                 for valid_prev_observation_state in valid_prev_observation_states:
                     # Get the trellis row index of the previous state we are looking at
                     prev_state_idx = self.state_to_idx[valid_prev_observation_state]
-                    
+
                     # Get the probability of that previous state from the trellis
                     state_prob = delta[prev_state_idx][observation_table_idx-1]
 
-                    # Get the transition proability from that previous state to the current state
+                    # Get the transition probability from that previous state to the current state
                     transition_prob = self.transition_probabilities[valid_prev_observation_state][valid_state]
-                    
+
                     # The total probability is the product of those two probabilities
                     total_prob = state_prob * transition_prob
-                    
+
                     # Update best probability
                     if max_prob < total_prob:
                         max_prob = total_prob
@@ -343,7 +367,7 @@ class HMM():
                 if max_prob > 0:
                     current_prob = max_prob * emission_prob
                     best_prev_state = max_state_idx
-                
+
                 # If we did not find a valid transition to current state, probability of state is 0
                 else:
                     current_prob = 0
@@ -354,8 +378,8 @@ class HMM():
 
                 # Update backpointer to best previous state
                 back_p[curr_state_idx][observation_table_idx] = best_prev_state
-                
-       
+
+
 
         # Find the row that has the highest value in the final column of trellis
         # This is our best state sequence
@@ -367,7 +391,7 @@ class HMM():
             if delta_val > highest_prob:
                 highest_prob = delta_val
                 highest_prob_idx = state_idx
-        
+
         # Create a trellis visualization
         # new_delta = delta.T
 
@@ -402,7 +426,7 @@ class HMM():
             # We output that no sequence was found
             output = input_str + " => " + " *none*" + "\nProbability of sequence: " '0' + '\n'
             print(output)
-        
+
         # If we did find a valid state sequence
         else:
             # We will iterate backwards through the trellis to find the best state idx sequence
@@ -411,7 +435,7 @@ class HMM():
                 bp = int(back_p[highest_prob_idx][state_idx])
                 state_seq.append(bp)
                 highest_prob_idx = bp
-            
+
             # Since our state sequence is backwards, we reverse it
             state_seq = list(reversed(state_seq))
 
@@ -425,9 +449,10 @@ class HMM():
             # Print all results
             print(output)
 
-        
-    
+
+
 if __name__ == "__main__":
     filename = "hmm_ex1"
     hmm = HMM(filename)
     viterbi_res = hmm.viterbi("the store sold the book")
+    hmm.forward("the store sold the book")
