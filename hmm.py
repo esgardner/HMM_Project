@@ -6,6 +6,7 @@ import networkx as nx
 import random
 import matplotlib.pyplot as plt
 
+
 class HMM_Parser():
     def parse(self, hmm_filename):
         ## Variables for parsing results
@@ -138,7 +139,6 @@ class HMM_Parser():
             "emission_to_states": emission_to_states,
         }
 
-
     ## Extract the last integer in a space separated string
     # e.g. "State 2" -> 2
     def _get_last_int_in_line(self, line):
@@ -151,7 +151,7 @@ class HMM_Parser():
 
     # Extract information about initial states from a line
     # "BOS 1.0" -> ("BOS", 1.0)
-    def parse_init_line(self,line):
+    def parse_init_line(self, line):
         # Split line on spaces
         split_line = line.split()
 
@@ -162,7 +162,7 @@ class HMM_Parser():
 
     # Extract information about transitions from a line
     # "BOS DT 0.5" -> ("BOS", "DT", 0.5)
-    def parse_transition_line(self,line):
+    def parse_transition_line(self, line):
         # Split line on spaces
         split_line = line.split()
 
@@ -179,7 +179,7 @@ class HMM_Parser():
 
     # Extract information about emissions from a line
     # "DT the 0.5" -> ("DT", "the", 0.5)
-    def parse_emission_line(self,line):
+    def parse_emission_line(self, line):
         # Split line on spaces
         split_line = line.split()
 
@@ -194,6 +194,7 @@ class HMM_Parser():
             sys.exit()
         return (state, emission, prob)
 
+
 class HMMTrellis():
     def __init__(self, hmm_instance, input_arr):
         self.hmm = hmm_instance
@@ -204,16 +205,15 @@ class HMMTrellis():
         self.labels = dict()
         self.node_map = dict()
 
-
         # Create all the basic nodes in our trellis and position them in a grid
         idx = 1
         for row_idx in range(len(self.hmm.states)):
             for col_idx in range(len(input_arr) + 1):
                 # Add the node to our trellis
                 self.trellis.add_node(idx)
-                
+
                 # Set the (x,y) position of this node
-                self.node_positions[idx] = (col_idx+1, row_idx)
+                self.node_positions[idx] = (col_idx + 1, row_idx)
 
                 # Set the label on this node to empty string
                 self.labels[idx] = ""
@@ -221,12 +221,12 @@ class HMMTrellis():
                 # Remember the id of this (row_idx, col_idx) node
                 self.node_map[(row_idx, col_idx)] = idx
                 idx += 1
-        
+
     # Set the text on a given node
     def set_node_label(self, row_idx, col_idx, label):
         node_id = self.node_map[(row_idx, col_idx)]
         self.labels[node_id] = label
-    
+
     # Add an edge between trellis nodes
     def add_edge(self, start_row_idx, start_col_idx, end_row_idx, end_col_idx, color='black'):
         # Get id of nodes
@@ -235,8 +235,8 @@ class HMMTrellis():
 
         # Create edge
         edge = (start_node_id, end_node_id)
-        self.trellis.add_edge(*edge,color=color)
-    
+        self.trellis.add_edge(*edge, color=color)
+
     # Change the color of an existing edge
     def change_edge_color(self, start_row_idx, start_col_idx, end_row_idx, end_col_idx, color):
         # Get id of nodes
@@ -251,28 +251,31 @@ class HMMTrellis():
             self.trellis[edge[0]][edge[1]]['color'] = color
         if edge[1] in self.trellis and edge[0] in self.trellis[edge[1]]:
             self.trellis[edge[1]][edge[0]]['color'] = color
-    
+
     # Used by display() and save_to_file() to generate the trellis
     def _generate_graph(self, title):
         # Draw the main trellis
         edge_color_list = [self.trellis[e[0]][e[1]]['color'] for e in self.trellis.edges()]
-        nx.draw(self.trellis, self.node_positions, labels=self.labels, edge_labels=True, edge_color=edge_color_list, node_size=800, font_size=8)
+        nx.draw(self.trellis, self.node_positions, labels=self.labels, edge_labels=True, edge_color=edge_color_list,
+                node_size=800, font_size=8)
 
         # Set up the row and column labels
         trellis_labels = ["States", "Initial States"] + self.input_arr
         for row_idx in range(len(trellis_labels)):
-            plt.text(row_idx,len(self.hmm.states)-0.5, trellis_labels[row_idx], horizontalalignment='center', verticalalignment='center')
+            plt.text(row_idx, len(self.hmm.states) - 0.5, trellis_labels[row_idx], horizontalalignment='center',
+                     verticalalignment='center')
         for col_idx in range(len(trellis_labels)):
-            plt.text(0,col_idx, self.hmm.idx_to_state[col_idx], horizontalalignment='center', verticalalignment='center')
-        
+            plt.text(0, col_idx, self.hmm.idx_to_state[col_idx], horizontalalignment='center',
+                     verticalalignment='center')
+
         # Set the title
         x_pos = (len(self.input_arr) + 1) / float(2)
         y_pos = len(self.hmm.states)
         plt.text(x_pos, y_pos, title, horizontalalignment='center', verticalalignment='center')
 
         # Set the window range that the user sees
-        plt.xlim(left=-0.3,right=len(trellis_labels)-1+0.6)
-        plt.ylim(top=len(self.hmm.states)+0.5)
+        plt.xlim(left=-0.3, right=len(trellis_labels) - 1 + 0.6)
+        plt.ylim(top=len(self.hmm.states) + 0.5)
 
     # Display the trellis in a popup window
     def display(self, title):
@@ -281,7 +284,7 @@ class HMMTrellis():
 
         # Display the trellis
         plt.show()
-    
+
     # Save the trellis image to a file
     def save_to_file(self, filename, title):
         # Generate the trellis graph
@@ -289,6 +292,7 @@ class HMMTrellis():
 
         # Save the trellis graph to file
         plt.savefig(filename)
+
 
 # HMM Class
 class HMM():
@@ -316,7 +320,7 @@ class HMM():
     def _create_state_to_idx_mapping(self, states, initial_states):
         state_to_idx = collections.defaultdict(int)
         idx_to_state = collections.defaultdict(str)
-        
+
         nonstart_states = list(states.difference(initial_states))
         nonstart_states.sort(reverse=True)
 
@@ -330,7 +334,7 @@ class HMM():
             idx_to_state[idx] = state
         return state_to_idx, idx_to_state
 
-    # run the forward algorithm
+    # Run forward on a given input string
     def forward(self, input_str):
         # Remove any blank characters at the end of the string
         input_str = input_str.rstrip()
@@ -364,7 +368,8 @@ class HMM():
 
             # Only return init states which have a transition to the current state
             for init_state in init_states:
-                if init_state in self.transition_probabilities and curr_state in self.transition_probabilities[init_state]:
+                if init_state in self.transition_probabilities and curr_state in self.transition_probabilities[
+                    init_state]:
                     return_states |= {init_state}
 
             return return_states
@@ -397,8 +402,8 @@ class HMM():
 
         ## Set up our trellis and backpointers
         # Our trellis is a (len(input_seq)+1) row, len(self.states) col
-        delta = [[0.0 for _ in range(len(input_seq)+1)] for _ in range(len(self.states))]
-        back_p = [[-1 for _ in range(len(input_seq)+1)] for _ in range(len(self.states))]
+        delta = [[0.0 for _ in range(len(input_seq) + 1)] for _ in range(len(self.states))]
+        back_p = [[-1 for _ in range(len(input_seq) + 1)] for _ in range(len(self.states))]
 
         # Initialize our trellis with values for first column
         for state in self.states:
@@ -417,7 +422,7 @@ class HMM():
         # Iterate through our sequence for every obvservation in our input sequence
         for observation_idx, observation in enumerate(input_seq):
             # This is the trellis column index of the obvservation we are looking at
-            observation_table_idx = observation_idx+1
+            observation_table_idx = observation_idx + 1
 
             # Get a set of states that can emit for this observation
             valid_states = self.emission_to_states[observation]
@@ -458,9 +463,9 @@ class HMM():
                     prev_state_idx = self.state_to_idx[valid_prev_observation_state]
 
                     # Get the probability of that previous state from the trellis
-                    state_prob = delta[prev_state_idx][observation_table_idx-1]
+                    state_prob = delta[prev_state_idx][observation_table_idx - 1]
 
-                    # Get the transition probability from that previous state to the current state
+                    # Get the transition proability from that previous state to the current state
                     transition_prob = self.transition_probabilities[valid_prev_observation_state][valid_state]
 
                     # The total probability is the product of those two probabilities
@@ -498,36 +503,6 @@ class HMM():
                 highest_prob = delta_val
                 highest_prob_idx = state_idx
 
-        # Create a trellis visualization
-        # new_delta = delta.T
-
-        # This will be the headers of our table
-        table_headers = [str(idx+1) + ") " + item for idx, item in enumerate(input_seq)]
-        table_headers.insert(0, "[States]")
-        table_headers.insert(1, "[Initial probabilities]")
-
-        # Create a PrettyTable to display trellis
-        trellis = PrettyTable()
-        for idx, row in enumerate(delta):
-            row = ["%.8f" % number for number in row]
-            state_name = self.idx_to_state[idx]
-            new_row = []
-            for item in row:
-                try:
-                    item = float(item)
-                    if item > 0:
-                        item = '\033[92m' + str(item) + '\033[0m'
-                    new_row.append(str(item))
-                except ValueError:
-                    new_row.append(item)
-            new_row.insert(0, state_name)
-            trellis.add_row(new_row)
-        trellis.field_names = table_headers
-
-        # Print trellis
-        print(trellis)
-
-
         # If we couldn't find a valid state sequence
         if highest_prob_idx == -1:
             # We output that no sequence was found
@@ -551,11 +526,11 @@ class HMM():
 
             # Pretty print the results
             # Get the direct string representation of results
-            output = input_str + " => " + " ".join(state_seq_outputs) + "\nProbability of sequence:" + str(highest_prob) + '\n'
+            output = input_str + " => " + " ".join(state_seq_outputs) + "\nProbability of sequence:" + str(
+                highest_prob) + '\n'
 
             # Print all results
             print(output)
-        
 
         # Set up the trellis
         trellis = HMMTrellis(self, input_seq)
@@ -571,7 +546,6 @@ class HMM():
                     label = '{:.1e}'.format(delta[row_idx][col_idx])
                 trellis.set_node_label(row_idx, col_idx, label)
 
-
         # Add all valid HMM edges (Except for edges from the initial state)
         for row_idx in range(len(delta)):
             for col_idx in range(len(delta[0])):
@@ -580,7 +554,7 @@ class HMM():
                 # (i.e. there are no rightward edges starting from this node)
                 if col_idx + 1 == len(delta[0]):
                     continue
-                
+
                 # Iterate over all nodes of the next column
                 for next_row_idx in range(len(delta)):
                     # Check if this is a valid state transition
@@ -590,11 +564,10 @@ class HMM():
                     # Skip edge creation if this is a non-valid start state
                     if col_idx == 0 and start_state not in self.initial_states:
                         continue
-                    
+
                     # If this a valid transition (probability > 0), we draw an edge
                     if self.transition_probabilities[start_state][end_state] > 0:
-                        trellis.add_edge(row_idx, col_idx, next_row_idx, col_idx+1)
-
+                        trellis.add_edge(row_idx, col_idx, next_row_idx, col_idx + 1)
 
         # Highlight Viterbi edges
         for row_idx in range(len(delta)):
@@ -603,16 +576,14 @@ class HMM():
                 if back_p[row_idx][col_idx] != -1:
                     # If it does, show the backpointer edge in red
                     back_pointer_row = back_p[row_idx][col_idx]
-                    trellis.change_edge_color(row_idx, col_idx, back_pointer_row, col_idx-1, 'red')
+                    trellis.change_edge_color(row_idx, col_idx, back_pointer_row, col_idx - 1, 'red')
 
         # Display the trellis
         # trellis.display("Viterbi Trellis")
         trellis.save_to_file("viterbi.png", "Viterbi Trellis")
 
 
-
 if __name__ == "__main__":
     filename = "hmm_ex1"
     hmm = HMM(filename)
     viterbi_res = hmm.viterbi("the store sold the book")
-    hmm.forward("the store sold the book")
