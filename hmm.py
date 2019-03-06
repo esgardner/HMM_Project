@@ -345,17 +345,31 @@ class HMM():
 
         result = [{}]
         # initialize base case for time step 0
+        # Initial state doesn't care about emission probabilities - we are not emitting anything at initial state
         for y in self.states:
-            result[0][y] = self.initial_state_probabilities[y]* self.emission_probabilities[y][input_seq[0]]
+            result[0][y] = self.initial_state_probabilities[y]
 
         # forward algorithm calculations
-        for t in range(1, len(input_seq)):
+        # We want to iterate from 1 to len(input_seq)+1
+        # idx of 1 is where we start emitting
+        # len(input_seq)+1 b/c we want to cover the whole input_seq, and result is an array with len(input_seq)+1 entries
+        for t in range(1, len(input_seq)+1):
             result.append({})
             for y in self.states:
-                result[t][y] = sum((result[t-1][y0] * self.transition_probabilities[y0][y] * self.emission_probabilities[y][input_seq[t]]) for y0 in self.states)
-        prob = sum((result[len(input_seq) - 1][s]) for s in self.states)
+                sum = 0.0
+                for y0 in self.states:
+                    # We want input_seq[t-1] because our for-loop makes t start at 1, not 0
+                    sum += (result[t-1][y0] * self.transition_probabilities[y0][y] * self.emission_probabilities[y][input_seq[t-1]])
+                result[t][y] = sum
+                # The summation below was kinda confusing so I spread it out into multiple lines
+                # result[t][y] = sum((result[t-1][y0] * self.transition_probabilities[y0][y] * self.emission_probabilities[y][input_seq[t]]) for y0 in self.states)
+        prob = 0.0
+        for s in self.states:
+            prob += result[-1][s]
+        # Turned the following line into multiple lines for clarity
+        # prob = sum((result[-1][s]) for s in self.states)
         for idx, x in enumerate(result):
-            print("input: {}, forward:{}".format(input_seq[idx],x))
+            print("input: {}, forward:{}".format(input_seq[idx-1],x))
         print("probability:{}".format(prob))
 
     # Run viterbi on a given input string
@@ -586,4 +600,4 @@ class HMM():
 if __name__ == "__main__":
     filename = "hmm_ex1"
     hmm = HMM(filename)
-    viterbi_res = hmm.viterbi("the store sold the book")
+    viterbi_res = hmm.forward("the store sold the book")
