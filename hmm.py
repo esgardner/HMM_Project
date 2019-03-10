@@ -5,6 +5,7 @@ import sys, collections
 import networkx as nx
 import random
 import matplotlib.pyplot as plt
+import operator
 
 
 class HMM_Parser():
@@ -334,7 +335,9 @@ class HMM():
             idx_to_state[idx] = state
         return state_to_idx, idx_to_state
 
+
     # Run forward on a given input string
+
     def forward(self, input_str):
         # Remove any blank characters at the end of the string
         input_str = input_str.rstrip()
@@ -353,7 +356,7 @@ class HMM():
         # We want to iterate from 1 to len(input_seq)+1
         # idx of 1 is where we start emitting
         # len(input_seq)+1 b/c we want to cover the whole input_seq, and result is an array with len(input_seq)+1 entries
-        for t in range(1, len(input_seq)+1):
+        for t in range(1, len(input_seq) + 1):
             result.append({})
             for y in self.states:
                 sum = 0.0
@@ -361,16 +364,65 @@ class HMM():
                     # We want input_seq[t-1] because our for-loop makes t start at 1, not 0
                     sum += (result[t-1][y0] * self.transition_probabilities[y0][y] * self.emission_probabilities[y][input_seq[t-1]])
                 result[t][y] = sum
-                # The summation below was kinda confusing so I spread it out into multiple lines
                 # result[t][y] = sum((result[t-1][y0] * self.transition_probabilities[y0][y] * self.emission_probabilities[y][input_seq[t]]) for y0 in self.states)
         prob = 0.0
         for s in self.states:
             prob += result[-1][s]
-        # Turned the following line into multiple lines for clarity
         # prob = sum((result[-1][s]) for s in self.states)
+
+        result_word = ""
         for idx, x in enumerate(result):
-            print("input: {}, forward:{}".format(input_seq[idx-1],x))
+            if idx-1 == -1:
+                print("input: initial state, forward: {}".format(x))
+            else:
+                result_word = result_word + max(x.items(), key=operator.itemgetter(1))[0]
+
+        print("input:{}".format(input_seq))
+        print("result: {}".format(result_word))
         print("probability:{}".format(prob))
+
+        # Set up the trellis
+        trellis2 = HMMTrellis(self, input_seq)
+        for input in range(len(result)):
+            for state in result[input]:
+                # Set the node's label as the probability of arriving at that node
+                #  (this is based on Viterbi calculation)
+                if result[input][state] == 0:
+                    label = "0"
+                elif result[input][state] == 1:
+                    label = "1"
+                else:
+                    label = '{:.1e}'.format(result[input][state])
+
+                trellis2.set_node_label(self.state_to_idx[state], input, label)
+
+        # Add all valid HMM edges (Except for edges from the initial state)
+        for input in range(len(result)):
+            for state in result[input]:
+                # If we are looking at a node in last column,
+                #  we ignore, since edges are in the right-ward direction from current node
+                # (i.e. there are no rightward edges starting from this node)
+                if input + 1 == len(result):
+                    continue
+
+                # Iterate over all nodes of the next column
+                for state2 in result[input + 1]:
+                    # Check if this is a valid state transition
+                    start_state = state
+                    end_state = state2
+
+                    # Skip edge creation if this is a non-valid start state
+                    if input == 0 and start_state not in self.initial_states:
+                        continue
+
+                    # If this a valid transition (probability > 0), we draw an edge
+                    if self.transition_probabilities[start_state][end_state] > 0:
+                        trellis2.add_edge(self.state_to_idx[state], input, self.state_to_idx[state2], input + 1)
+
+
+        # Display the trellis
+        #trellis.display("Viterbi Trellis")
+        trellis2.save_to_file("Forward.png", "Forward")
 
     # Run viterbi on a given input string
     def viterbi(self, input_str):
@@ -594,10 +646,15 @@ class HMM():
 
         # Display the trellis
         # trellis.display("Viterbi Trellis")
-        trellis.save_to_file("viterbi.png", "Viterbi Trellis")
+        #trellis.save_to_file("viterbi.png", "Viterbi Trellis")
 
 
 if __name__ == "__main__":
-    filename = "hmm_ex1"
+    #filename = "hmm_ex1"
+    filename = "typo_tables"
     hmm = HMM(filename)
-    viterbi_res = hmm.forward("the store sold the book")
+    hmm2 = HMM(filename)
+    #forward_res = hmm.viterbi("the store sold the book")
+    #viterbi_res = hmm.forward("the store sold the book")
+    viterbi_res = hmm.viterbi("h r l l o t h s r e i s a n e r r o t h w r e")
+    forward_res = hmm2.forward("h r l l o t h s r e i s a n e r r o t h w r e")
