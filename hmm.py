@@ -5,6 +5,7 @@ import sys, collections
 import networkx as nx
 import random
 import matplotlib.pyplot as plt
+import operator
 
 
 class HMM_Parser():
@@ -369,12 +370,15 @@ class HMM():
             prob += result[-1][s]
         # prob = sum((result[-1][s]) for s in self.states)
 
-
+        result_word = ""
         for idx, x in enumerate(result):
             if idx-1 == -1:
                 print("input: initial state, forward: {}".format(x))
             else:
-                print("input: {}, forward: {}".format(input_seq[idx-1],x))
+                result_word = result_word + max(x.items(), key=operator.itemgetter(1))[0]
+
+        print("input:{}".format(input_seq))
+        print("result: {}".format(result_word))
         print("probability:{}".format(prob))
 
         # Set up the trellis
@@ -642,15 +646,15 @@ class HMM():
 
         # Display the trellis
         # trellis.display("Viterbi Trellis")
-        trellis.save_to_file("viterbi.png", "Viterbi Trellis")
+        #trellis.save_to_file("viterbi.png", "Viterbi Trellis")
 
 
 if __name__ == "__main__":
     #filename = "hmm_ex1"
-    filename = "hmm_simple_ex"
+    filename = "typo_tables"
     hmm = HMM(filename)
     hmm2 = HMM(filename)
     #forward_res = hmm.viterbi("the store sold the book")
     #viterbi_res = hmm.forward("the store sold the book")
-    viterbi_res = hmm.viterbi("R W B B W R")
-    forward_res = hmm2.forward("R W B B W R")
+    viterbi_res = hmm.viterbi("h r l l o t h s r e i s a n e r r o t h w r e")
+    forward_res = hmm2.forward("h r l l o t h s r e i s a n e r r o t h w r e")
