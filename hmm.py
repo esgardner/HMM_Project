@@ -206,6 +206,11 @@ class HMMTrellis():
         self.labels = dict()
         self.node_map = dict()
 
+        # Clear graph
+        plt.clf()
+        plt.cla()
+        plt.close()
+
         # Create all the basic nodes in our trellis and position them in a grid
         idx = 1
         for row_idx in range(len(self.hmm.states)):
@@ -667,7 +672,7 @@ if __name__ == "__main__":
     # Supress warning from visualization pickage
     import warnings
     warnings.filterwarnings("ignore")
-    
+
     print("Input: " + sequence)
     hmm = HMM(hmm_file)
     print()
