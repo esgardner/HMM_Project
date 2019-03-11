@@ -298,7 +298,7 @@ class HMMTrellis():
 # HMM Class
 class HMM():
     def __init__(self, hmm_filename):
-        hmm_data = self.__load_hmm(filename)
+        hmm_data = self.__load_hmm(hmm_filename)
         self.emissions = hmm_data['emissions']
         self.states = hmm_data['states']
         self.initial_state_probabilities = hmm_data['initial_state_probs']
@@ -463,7 +463,7 @@ class HMM():
         for observation in input_seq:
             # If we encounter item not in HMM, we quit
             if observation not in self.emissions:
-                print("Error: Encountered observation in input that is not in HMM")
+                print("Error: Encountered observation ({}) in input that is not in HMM".format(observation))
                 sys.exit()
 
         ## Set up our trellis and backpointers
@@ -650,11 +650,36 @@ class HMM():
 
 
 if __name__ == "__main__":
-    #filename = "hmm_ex1"
-    filename = "weather_flights.hmm"
-    hmm = HMM(filename)
-    hmm2 = HMM(filename)
-    #forward_res = hmm.viterbi("the store sold the book")
-    #viterbi_res = hmm.forward("the store sold the book")
-    viterbi_res = hmm.viterbi("H L L")
-    forward_res = hmm2.forward("H L L")
+    # Get number of args (-1 to exclude the original file being counted as arg)
+    num_args = len(sys.argv) - 1
+    required_num_args = 2
+
+    # Verify correct number of args passed
+    if num_args == required_num_args:
+        hmm_file = sys.argv[1]
+        sequence = sys.argv[2]
+    else:
+        print("Invalid number of arguments. Expected:", file=sys.stderr)
+        print("python3 hmm.py <hmm_file> \"<sequence of observations separated by space>\"", file=sys.stderr)
+        print("Example: python3 hmm.py pos.hmm \"Time flies like an arrow\"", file=sys.stderr)
+        sys.exit(-1)
+    
+    # Supress warning from visualization pickage
+    import warnings
+    warnings.filterwarnings("ignore")
+    
+    print("Input: " + sequence)
+    hmm = HMM(hmm_file)
+    print()
+    print("Viterbi algorithm")
+    hmm.viterbi(sequence)
+
+    print()
+    print("Forward algorithm")
+    hmm.forward(sequence)
+    print("Viterbi and Forward algorithm trellis saved to file.")
+    # hmm2 = HMM(filename)
+    # #forward_res = hmm.viterbi("the store sold the book")
+    # #viterbi_res = hmm.forward("the store sold the book")
+    # viterbi_res = hmm.viterbi("h r l l o t h s r e i s a n e r r o t h w r e")
+    # forward_res = hmm2.forward("h r l l o t h s r e i s a n e r r o t h w r e")
