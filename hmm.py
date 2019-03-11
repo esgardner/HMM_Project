@@ -265,7 +265,7 @@ class HMMTrellis():
         for row_idx in range(len(trellis_labels)):
             plt.text(row_idx, len(self.hmm.states) - 0.5, trellis_labels[row_idx], horizontalalignment='center',
                      verticalalignment='center')
-        for col_idx in range(len(trellis_labels)):
+        for col_idx in range(len(self.hmm.states)):
             plt.text(0, col_idx, self.hmm.idx_to_state[col_idx], horizontalalignment='center',
                      verticalalignment='center')
 
@@ -646,15 +646,15 @@ class HMM():
 
         # Display the trellis
         # trellis.display("Viterbi Trellis")
-        #trellis.save_to_file("viterbi.png", "Viterbi Trellis")
+        trellis.save_to_file("viterbi.png", "Viterbi Trellis")
 
 
 if __name__ == "__main__":
     #filename = "hmm_ex1"
-    filename = "typo_tables"
+    filename = "weather_flights.hmm"
     hmm = HMM(filename)
     hmm2 = HMM(filename)
     #forward_res = hmm.viterbi("the store sold the book")
     #viterbi_res = hmm.forward("the store sold the book")
-    viterbi_res = hmm.viterbi("h r l l o t h s r e i s a n e r r o t h w r e")
-    forward_res = hmm2.forward("h r l l o t h s r e i s a n e r r o t h w r e")
+    viterbi_res = hmm.viterbi("H L L")
+    forward_res = hmm2.forward("H L L")
