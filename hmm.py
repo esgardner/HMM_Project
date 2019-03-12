@@ -209,6 +209,11 @@ class HMMTrellis():
         self.node_map = dict()
 
 
+        # Clear graph
+        plt.clf()
+        plt.cla()
+        plt.close()
+
         # Create all the basic nodes in our trellis and position them in a grid
         idx = 1
         for row_idx in range(len(self.hmm.states)):
@@ -489,11 +494,13 @@ class HMM():
 
         # Iterate through our sequence for every obvservation in our input sequence
         for observation_idx, observation in enumerate(input_seq):
+            print("Processing emission: {}".format(observation))
             # This is the trellis column index of the obvservation we are looking at
             observation_table_idx = observation_idx + 1
 
             # Get a set of states that can emit for this observation
             valid_states = self.emission_to_states[observation]
+            print("    Valid states for this emission:"+str(valid_states))
 
             # Check each one to calculate probabilities of that state
             for valid_state in valid_states:
@@ -548,11 +555,14 @@ class HMM():
                 if max_prob > 0:
                     current_prob = max_prob * emission_prob
                     best_prev_state = max_state_idx
+                    print("    Probability of ending up in {} state for emission sequence up to '{}': {:.5f}".format(self.idx_to_state[best_prev_state], observation, current_prob))
 
                 # If we did not find a valid transition to current state, probability of state is 0
                 else:
                     current_prob = 0
                     best_prev_state = -1
+                    print("    Impossible to end up in any state for emission sequence up to {}".format(observation))
+
 
                 # Update current cell
                 delta[curr_state_idx][observation_table_idx] = current_prob
@@ -669,7 +679,7 @@ if __name__ == "__main__":
     # Suppress warning from visualization package
     import warnings
     warnings.filterwarnings("ignore")
-    
+
     print("Input: " + sequence)
     hmm = HMM(hmm_file)
     hmmf = HMM(hmm_file)
