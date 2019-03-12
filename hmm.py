@@ -200,11 +200,14 @@ class HMMTrellis():
     def __init__(self, hmm_instance, input_arr):
         self.hmm = hmm_instance
         self.input_arr = input_arr
+        self.plt = plt
+        self.nx = nx
 
-        self.trellis = nx.Graph()
+        self.trellis = self.nx.Graph()
         self.node_positions = dict()
         self.labels = dict()
         self.node_map = dict()
+
 
         # Create all the basic nodes in our trellis and position them in a grid
         idx = 1
@@ -257,26 +260,26 @@ class HMMTrellis():
     def _generate_graph(self, title):
         # Draw the main trellis
         edge_color_list = [self.trellis[e[0]][e[1]]['color'] for e in self.trellis.edges()]
-        nx.draw(self.trellis, self.node_positions, labels=self.labels, edge_labels=True, edge_color=edge_color_list,
+        self.nx.draw(self.trellis, self.node_positions, labels=self.labels, edge_labels=True, edge_color=edge_color_list,
                 node_size=800, font_size=8)
 
         # Set up the row and column labels
         trellis_labels = ["States", "Initial States"] + self.input_arr
         for row_idx in range(len(trellis_labels)):
-            plt.text(row_idx, len(self.hmm.states) - 0.5, trellis_labels[row_idx], horizontalalignment='center',
+            self.plt.text(row_idx, len(self.hmm.states) - 0.5, trellis_labels[row_idx], horizontalalignment='center',
                      verticalalignment='center')
         for col_idx in range(len(self.hmm.states)):
-            plt.text(0, col_idx, self.hmm.idx_to_state[col_idx], horizontalalignment='center',
+            self.plt.text(0, col_idx, self.hmm.idx_to_state[col_idx], horizontalalignment='center',
                      verticalalignment='center')
 
         # Set the title
         x_pos = (len(self.input_arr) + 1) / float(2)
         y_pos = len(self.hmm.states)
-        plt.text(x_pos, y_pos, title, horizontalalignment='center', verticalalignment='center')
+        self.plt.text(x_pos, y_pos, title, horizontalalignment='center', verticalalignment='center')
 
         # Set the window range that the user sees
-        plt.xlim(left=-0.3, right=len(trellis_labels) - 1 + 0.6)
-        plt.ylim(top=len(self.hmm.states) + 0.5)
+        self.plt.xlim(left=-0.3, right=len(trellis_labels) - 1 + 0.6)
+        self.plt.ylim(top=len(self.hmm.states) + 0.5)
 
     # Display the trellis in a popup window
     def display(self, title):
@@ -284,7 +287,7 @@ class HMMTrellis():
         self._generate_graph(title)
 
         # Display the trellis
-        plt.show()
+        self.plt.show()
 
     # Save the trellis image to a file
     def save_to_file(self, filename, title):
@@ -292,7 +295,7 @@ class HMMTrellis():
         self._generate_graph(title)
 
         # Save the trellis graph to file
-        plt.savefig(filename)
+        self.plt.savefig(filename)
 
 
 # HMM Class
@@ -347,7 +350,7 @@ class HMM():
 
 
         result = [{}]
-        # initialize base case for time step 0
+        # initialize base case
         # Initial state doesn't care about emission probabilities - we are not emitting anything at initial state
         for y in self.states:
             result[0][y] = self.initial_state_probabilities[y]
@@ -361,15 +364,15 @@ class HMM():
             for y in self.states:
                 sum = 0.0
                 for y0 in self.states:
-                    # We want input_seq[t-1] because our for-loop makes t start at 1, not 0
+                    # We want input_seq[t-1] because our for loop makes t start at 1, not 0
                     sum += (result[t-1][y0] * self.transition_probabilities[y0][y] * self.emission_probabilities[y][input_seq[t-1]])
                 result[t][y] = sum
-                # result[t][y] = sum((result[t-1][y0] * self.transition_probabilities[y0][y] * self.emission_probabilities[y][input_seq[t]]) for y0 in self.states)
         prob = 0.0
         for s in self.states:
             prob += result[-1][s]
         # prob = sum((result[-1][s]) for s in self.states)
 
+        '''
         result_word = ""
         for idx, x in enumerate(result):
             if idx-1 == -1:
@@ -379,14 +382,13 @@ class HMM():
 
         print("input:{}".format(input_seq))
         print("result: {}".format(result_word))
-        print("probability:{}".format(prob))
-
+        #print("probability:{}".format(prob))
+        '''
         # Set up the trellis
         trellis2 = HMMTrellis(self, input_seq)
         for input in range(len(result)):
             for state in result[input]:
                 # Set the node's label as the probability of arriving at that node
-                #  (this is based on Viterbi calculation)
                 if result[input][state] == 0:
                     label = "0"
                 elif result[input][state] == 1:
@@ -421,8 +423,8 @@ class HMM():
 
 
         # Display the trellis
-        #trellis.display("Viterbi Trellis")
-        trellis2.save_to_file("Forward.png", "Forward")
+        #trellis.display("Forward Trellis")
+        trellis2.save_to_file("Forward.png", "Forward Trellis")
 
     # Run viterbi on a given input string
     def viterbi(self, input_str):
@@ -664,19 +666,20 @@ if __name__ == "__main__":
         print("Example: python3 hmm.py pos.hmm \"Time flies like an arrow\"", file=sys.stderr)
         sys.exit(-1)
     
-    # Supress warning from visualization pickage
+    # Suppress warning from visualization package
     import warnings
     warnings.filterwarnings("ignore")
     
     print("Input: " + sequence)
     hmm = HMM(hmm_file)
+    hmmf = HMM(hmm_file)
     print()
     print("Viterbi algorithm")
-    hmm.viterbi(sequence)
+    #hmm.viterbi(sequence)
 
     print()
     print("Forward algorithm")
-    hmm.forward(sequence)
+    hmmf.forward(sequence)
     print("Viterbi and Forward algorithm trellis saved to file.")
     # hmm2 = HMM(filename)
     # #forward_res = hmm.viterbi("the store sold the book")
