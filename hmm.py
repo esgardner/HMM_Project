@@ -492,11 +492,13 @@ class HMM():
 
         # Iterate through our sequence for every obvservation in our input sequence
         for observation_idx, observation in enumerate(input_seq):
+            print("Processing emission: {}".format(observation))
             # This is the trellis column index of the obvservation we are looking at
             observation_table_idx = observation_idx + 1
 
             # Get a set of states that can emit for this observation
             valid_states = self.emission_to_states[observation]
+            print("\tValid states for this emission:"+str(valid_states))
 
             # Check each one to calculate probabilities of that state
             for valid_state in valid_states:
