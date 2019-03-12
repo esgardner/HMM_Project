@@ -498,7 +498,7 @@ class HMM():
 
             # Get a set of states that can emit for this observation
             valid_states = self.emission_to_states[observation]
-            print("\tValid states for this emission:"+str(valid_states))
+            print("    Valid states for this emission:"+str(valid_states))
 
             # Check each one to calculate probabilities of that state
             for valid_state in valid_states:
@@ -553,11 +553,14 @@ class HMM():
                 if max_prob > 0:
                     current_prob = max_prob * emission_prob
                     best_prev_state = max_state_idx
+                    print("    Probability of ending up in {} state for emission sequence up to '{}': {:.5f}".format(self.idx_to_state[best_prev_state], observation, current_prob))
 
                 # If we did not find a valid transition to current state, probability of state is 0
                 else:
                     current_prob = 0
                     best_prev_state = -1
+                    print("    Impossible to end up in any state for emission sequence up to {}".format(observation))
+
 
                 # Update current cell
                 delta[curr_state_idx][observation_table_idx] = current_prob
