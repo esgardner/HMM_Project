@@ -366,12 +366,14 @@ class HMM():
         # len(input_seq)+1 b/c we want to cover the whole input_seq, and result is an array with len(input_seq)+1 entries
         for t in range(1, len(input_seq) + 1):
             result.append({})
+            print("Processing emission: {}".format(input_seq[t-1]))
             for y in self.states:
                 sum = 0.0
                 for y0 in self.states:
                     # We want input_seq[t-1] because our for loop makes t start at 1, not 0
                     sum += (result[t-1][y0] * self.transition_probabilities[y0][y] * self.emission_probabilities[y][input_seq[t-1]])
                 result[t][y] = sum
+                print("\tProbability of ending up in {} state for emission sequence up to {}: {}".format(y,input_seq[t-1],result[t][y]))
         prob = 0.0
         for s in self.states:
             prob += result[-1][s]
@@ -685,7 +687,7 @@ if __name__ == "__main__":
     hmmf = HMM(hmm_file)
     print()
     print("Viterbi algorithm")
-    #hmm.viterbi(sequence)
+    hmm.viterbi(sequence)
 
     print()
     print("Forward algorithm")
