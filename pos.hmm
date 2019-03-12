@@ -24,12 +24,14 @@ PP N 0.5
 DT	the	0.4
 DT	a	0.3
 DT	an	0.3
-N	goods	0.2
-N	book	0.1
+N	goods	0.1
+N	book	0.05
 N	store	0.1
 N	time	0.2
 N	arrow	0.2
 N	flies	0.2
+N   fly     0.1
+N   I       0.05
 V	book	0.2
 V	buy	    0.1
 V	bought	0.2
