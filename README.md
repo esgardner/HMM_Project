@@ -14,6 +14,11 @@ HMMs are defined by an initial distribution, transitions, and emissions. The tra
 
 In the POS tagging model, the hidden states correspond to POS tags, where each POS tag state can emit a word. For example, the state DT (Determiner) will emit items like “the” or “a”. The model was handwritten based on intuition, and was made to be able to correctly tag the phrase “time flies like an arrow”, as well as other phrases that contain those same words (but tagged differently), such as “a fly”, “I like flies”. 
 
+## Trellis Visualization Examples
+![](images/Forward.png)
+
+![](images/viterbi.png)
+
 ## Demo Instructions
 The program can be run in the command line or in an IDE, such as PyCharm by specifying the parameters. 
 
