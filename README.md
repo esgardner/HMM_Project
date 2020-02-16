@@ -4,7 +4,7 @@
 Our program implements the Viterbi and Forward algorithms for HMMs. For each algorithm, the user can input an observation sequence and see the results of the algorithm in a trellis image. The PrettyTable python package is used to display the trellis. These algorithms can be applied to various domains using a model with values for transitions, emissions, and initial states. For this project, we have chosen POS-tagging and snowfall prediction as our models.
 
 ## Techniques and Description 
-Hidden Markov Models (HMMs) are a type of graphical markov model. They have a series of hidden variables (states)  and a set of observed variables. We can use the observed variables to predict the sequence of hidden variables. We implemented two algorithms that can be used to calculate probabilities for HMMs. We then applied these algorithms to two models. For the snowfall prediction model, the states are inches of snow and the observations are flight delays. For the POS tagging model, the states are parts of speech and the observations are words in a sentence. 
+Hidden Markov Models (HMMs) are a type of graphical Markov model. They have a series of hidden variables (states) and a set of observed variables. We can use the observed variables to predict the sequence of hidden variables. We implemented two algorithms that can be used to calculate probabilities for HMMs. We then applied these algorithms to two models. For the snowfall prediction model, the states are inches of snow and the observations are flight delays. For the POS tagging model, the states are parts of speech and the observations are words in a sentence. 
 
 The first algorithm is the Viterbi algorithm, a dynamic programming algorithm that takes an observation sequence, and returns the state sequence that most likely produced the observations. 
 
@@ -22,10 +22,11 @@ In the POS tagging model, the hidden states correspond to POS tags, where each P
 ## Demo Instructions
 The program can be run in the command line or in an IDE, such as PyCharm by specifying the parameters. 
 
-Here is an example of how to run the program: 
-Python3 hmm.py pos.hmm “Time flies like an arrow”
+Here is an example of how to run the program:
 
-The name of the program file is hmm.py and to run it you need to pass it two arguments: the first is the model file (either pos.hmm or weather_flights.hmm). The second is the space-separated observation sequence, in this case the sentence “time flies like an arrow’.  
+**Python3 hmm.py pos.hmm “Time flies like an arrow”**
+
+The name of the program file is **hmm.py** and to run it you need to pass it two arguments: the first is the model file (either pos.hmm or weather_flights.hmm). The second is the space-separated observation sequence, in this case the sentence "time flies like an arrow".  
 
 
 
