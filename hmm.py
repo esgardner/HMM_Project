@@ -377,7 +377,7 @@ class HMM():
         prob = 0.0
         for s in self.states:
             prob += result[-1][s]
-        # prob = sum((result[-1][s]) for s in self.states)
+
 
         '''
         result_word = ""
@@ -693,8 +693,4 @@ if __name__ == "__main__":
     print("Forward algorithm")
     hmmf.forward(sequence)
     print("Viterbi and Forward algorithm trellis saved to file.")
-    # hmm2 = HMM(filename)
-    # #forward_res = hmm.viterbi("the store sold the book")
-    # #viterbi_res = hmm.forward("the store sold the book")
-    # viterbi_res = hmm.viterbi("h r l l o t h s r e i s a n e r r o t h w r e")
-    # forward_res = hmm2.forward("h r l l o t h s r e i s a n e r r o t h w r e")
+
