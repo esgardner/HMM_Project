@@ -20,11 +20,9 @@ In the POS tagging model, the hidden states correspond to POS tags, where each P
 ![](images/viterbi.png)
 
 ## Demo Instructions
-The program can be run in the command line or in an IDE, such as PyCharm by specifying the parameters. 
+The program can be run in the command line or in an IDE, such as PyCharm. Here is an example of how to run the program:
 
-Here is an example of how to run the program:
-
-**Python3 hmm.py pos.hmm “Time flies like an arrow”**
+**python3 hmm.py pos.hmm “Time flies like an arrow”**
 
 The name of the program file is **hmm.py** and to run it you need to pass it two arguments: the first is the model file (either pos.hmm or weather_flights.hmm). The second is the space-separated observation sequence, in this case the sentence "time flies like an arrow".  
 
